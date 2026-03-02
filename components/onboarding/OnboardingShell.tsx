@@ -1,4 +1,7 @@
+'use client';
+
 import Link from 'next/link';
+import { useEffect, useRef, useState } from 'react';
 import { ONBOARDING_SIDEBAR_ITEMS, TRUST_ITEMS } from '@/lib/constants/onboarding';
 import type { OnboardingStepContent } from '@/lib/types/onboarding';
 
@@ -24,15 +27,31 @@ function getMobileCardHeight(stepId: number) {
   return 462;
 }
 
-function StepField({ label, value, rounded = 'pill' }: { label: string; value?: string; rounded?: 'pill' | 'soft' }) {
+function StepField({
+  label,
+  value,
+  initialValue,
+  rounded = 'pill',
+  onChange,
+}: {
+  label: string;
+  value: string;
+  initialValue?: string;
+  rounded?: 'pill' | 'soft';
+  onChange: (value: string) => void;
+}) {
+  const inputType = label.toLowerCase().includes('email') ? 'email' : 'text';
+
   return (
     <div>
       <p className="mb-[3px] pl-[15px] text-sm font-extralight italic tracking-[0.7px] text-[#294F7C]">{label}</p>
-      <div
-        className={`h-10 w-full border border-[#294F7C] bg-[rgba(248,250,252,0.7)] ${rounded === 'pill' ? 'rounded-[70px]' : 'rounded-[20px]'} px-[15px] py-[9px] text-sm font-extralight italic tracking-[1.4px] text-[#5E5E5E]`}
-      >
-        {value ?? ''}
-      </div>
+      <input
+        type={inputType}
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={initialValue ?? ''}
+        className={`h-10 w-full border border-[#294F7C] bg-[rgba(248,250,252,0.7)] ${rounded === 'pill' ? 'rounded-[70px]' : 'rounded-[20px]'} px-[15px] py-[9px] text-sm font-normal not-italic tracking-normal text-[#294F7C] outline-none placeholder:font-extralight placeholder:italic placeholder:tracking-[1.4px] placeholder:text-[#5E5E5E]`}
+      />
     </div>
   );
 }
@@ -40,6 +59,17 @@ function StepField({ label, value, rounded = 'pill' }: { label: string; value?: 
 function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobile?: boolean }) {
   const cardHeight = mobile ? getMobileCardHeight(step.id) : getDesktopCardHeight(step.id);
   const useStepOneLayout = step.id === 1 && !step.showSelfieUpload && !step.showSendOtp && !step.resendText;
+  const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
+    Object.fromEntries(step.fields.map((field) => [field.label, ''])),
+  );
+  const [selectedFileName, setSelectedFileName] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setFieldValues(Object.fromEntries(step.fields.map((field) => [field.label, ''])));
+    setSelectedFileName('');
+  }, [step.id, step.fields]);
 
   return (
     <div className="relative rounded-[20px] border border-[#4A90E2] bg-[#EAF4FB]" style={{ width: mobile ? 370 : 600, height: cardHeight }}>
@@ -76,18 +106,53 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
         {step.fields
           .filter((field) => !field.label.toLowerCase().includes('upload selfie'))
           .map((field) => (
-            <StepField key={field.label} label={field.label} value={field.value} rounded={field.rounded} />
+            <StepField
+              key={field.label}
+              label={field.label}
+              value={fieldValues[field.label] ?? ''}
+              initialValue={field.value}
+              rounded={field.rounded}
+              onChange={(value) => setFieldValues((prev) => ({ ...prev, [field.label]: value }))}
+            />
           ))}
       </div>
 
       {step.showSelfieUpload ? (
         <div className={`absolute left-1/2 w-[250px] -translate-x-1/2 rounded-[30px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] py-3 text-center ${mobile ? 'top-[402px]' : 'top-[385px]'}`}>
           <p className="absolute -top-5 left-[15px] text-sm font-extralight italic tracking-[0.7px] text-[#294F7C]">Upload Selfie</p>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              setSelectedFileName(file?.name ?? '');
+            }}
+          />
+          <input
+            ref={cameraInputRef}
+            type="file"
+            accept="image/*"
+            capture="user"
+            className="hidden"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              setSelectedFileName(file?.name ?? '');
+            }}
+          />
           <img src="/assets/onboarding/icons/camera.svg" alt="" className="mx-auto size-10" />
-          <p className="mt-1 text-xs font-normal text-[#4A90E2]">
-            Choose File <span className="text-[#294F7C]">or</span> Take Photo
-          </p>
+          <div className="mt-1 text-xs font-normal tracking-[0.6px]">
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="font-normal text-[#4A90E2]">
+              Choose File
+            </button>
+            <span className="px-2 text-[#294F7C]">or</span>
+            <button type="button" onClick={() => cameraInputRef.current?.click()} className="font-normal text-[#4A90E2]">
+              Take Photo
+            </button>
+          </div>
           <p className="mt-1 text-[10px] font-light italic text-[#294F7C]">Max file size: 5MB</p>
+          {selectedFileName ? <p className="mt-1 truncate px-3 text-[10px] text-[#294F7C]">{selectedFileName}</p> : null}
         </div>
       ) : null}
 
@@ -130,7 +195,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
   const progressPercent = Math.max(0, Math.min(100, step.progress));
 
   return (
-    <main className="min-h-screen bg-white font-urbanist text-[#294F7C]">
+    <main className="min-h-screen bg-white font-urbanist font-normal text-[#294F7C]">
       <div className="hidden min-h-screen w-full bg-white backdrop-blur-[50px] lg:flex">
         <aside className="relative min-h-screen w-[34%] min-w-[420px] max-w-[520px]">
           <div className="absolute inset-0 z-0 bg-[linear-gradient(122.67deg,#F8FAFC_0%,#EAF4FB_100%)]" />
