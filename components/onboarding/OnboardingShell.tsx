@@ -42,10 +42,11 @@ function getMobileCardWidth(stepId: number) {
 function getMobileCardHeight(stepId: number) {
   if (stepId === 2) return 616;
   if (stepId === 1) return 389;
-  if (stepId === 5 || stepId === 6) return 760;
+  if (stepId === 5) return 1200;
+  if (stepId === 6) return 1201;
   if (stepId === 7) return 700;
-  if (stepId === 8) return 560;
-  if (stepId === 9) return 820;
+  if (stepId === 8) return 725;
+  if (stepId === 9) return 1185;
   if (stepId === 10) return 560;
   if (stepId === 11) return 500;
   if (stepId === 12) return 430;
@@ -86,16 +87,26 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
   const cardWidth = mobile ? getMobileCardWidth(step.id) : getDesktopCardWidth(step.id);
   const useStepOneLayout = step.id === 1 && !step.showSelfieUpload && !step.showSendOtp && !step.resendText;
   const isPersonalDetailsDesktop = !mobile && (step.id === 5 || step.id === 6);
+  const isPersonalDetailsMobile = mobile && step.id === 5;
+  const isPersonalDetailsMobileOtp = mobile && step.id === 6;
+  const isBankDetailsDesktop = !mobile && step.id === 8;
+  const isNomineeDetailsDesktop = !mobile && step.id === 9;
+  const isBankDetailsMobile = mobile && step.id === 8;
+  const isNomineeDetailsMobile = mobile && step.id === 9;
   const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(step.fields.map((field) => [field.label, ''])),
   );
   const [selectedFileName, setSelectedFileName] = useState('');
+  const [agreedTerms, setAgreedTerms] = useState(false);
+  const [sameAsYours, setSameAsYours] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     setFieldValues(Object.fromEntries(step.fields.map((field) => [field.label, ''])));
     setSelectedFileName('');
+    setAgreedTerms(false);
+    setSameAsYours(false);
   }, [step.id, step.fields]);
 
   return (
@@ -181,6 +192,252 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
             </>
           )}
         </>
+      ) : isPersonalDetailsMobile ? (
+        <>
+          {[
+            { label: 'Name', top: 113 },
+            { label: 'Date of Birth', top: 197 },
+            { label: 'Gender', top: 281, isSelect: true },
+            { label: 'Marital Status', top: 365, isSelect: true },
+            { label: 'Email', top: 449 },
+            { label: 'Address Line 1', top: 617 },
+            { label: 'Address Line 2', top: 701 },
+            { label: 'City', top: 785 },
+            { label: 'State', top: 869 },
+            { label: 'Pincode', top: 953 },
+            { label: 'Country of Birth', top: 1037, isSelect: true },
+          ].map((item) => (
+            <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <Link
+            href={step.nextStepHref || '/onboarding/6'}
+            className="absolute left-[56px] top-[553px] block h-10 w-[250px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]"
+            style={{ fontSize: 20 }}
+          >
+            Send OTP
+          </Link>
+
+          <Link href={step.prevStepHref || '/onboarding/4'} className="absolute left-[31px] top-[1138px] inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6" />
+            <span className="text-[20px] font-medium leading-none">Back</span>
+          </Link>
+          <Link href={step.nextStepHref || '/onboarding/6'} className="absolute left-[237px] top-[1128px] h-10 w-[100px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]">
+            Next
+          </Link>
+        </>
+      ) : isPersonalDetailsMobileOtp ? (
+        <>
+          {[
+            { label: 'Name', top: 113 },
+            { label: 'Date of Birth', top: 197 },
+            { label: 'Gender', top: 281, isSelect: true },
+            { label: 'Marital Status', top: 365, isSelect: true },
+            { label: 'Email', top: 449 },
+            { label: 'Enter OTP', top: 533 },
+            { label: 'Address Line 1', top: 617 },
+            { label: 'Address Line 2', top: 701 },
+            { label: 'City', top: 785 },
+            { label: 'State', top: 869 },
+            { label: 'Pincode', top: 953 },
+            { label: 'Country of Birth', top: 1037, isSelect: true },
+          ].map((item) => (
+            <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <p className="absolute left-[56px] top-[597px] w-[250px] text-right text-[10px] font-extralight text-black">Resend OTP in 30 seconds</p>
+
+          <Link href={step.prevStepHref || '/onboarding/5'} className="absolute left-[31px] top-[1138px] inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6" />
+            <span className="text-[20px] font-medium leading-none">Back</span>
+          </Link>
+          <Link href={step.nextStepHref || '/onboarding/7'} className="absolute left-[237px] top-[1128px] h-10 w-[100px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]">
+            Next
+          </Link>
+        </>
+      ) : isBankDetailsMobile ? (
+        <>
+          {[
+            { label: 'Account Holder Name', top: 113 },
+            { label: 'IFSC Code', top: 197 },
+            { label: 'Account Number', top: 317 },
+            { label: 'Re-enter Account Number', top: 401 },
+            { label: 'Type of Account', top: 477, isSelect: true },
+            { label: 'Mode of Holding', top: 561, isSelect: true },
+          ].map((item) => (
+            <div key={item.label} className="absolute left-[60px]" style={{ top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type="text"
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <p className="absolute left-[59px] top-[261px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#294F7C]">Branch:</p>
+          <p className="absolute left-[59px] top-[283px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#294F7C]">Address:</p>
+
+          <Link href={step.prevStepHref || '/onboarding/7'} className="absolute left-[31px] top-[662px] inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6" />
+            <span className="text-[20px] font-medium leading-none">Back</span>
+          </Link>
+          <Link href={step.nextStepHref || '/onboarding/9'} className="absolute left-[237px] top-[652px] h-10 w-[100px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]">
+            Next
+          </Link>
+        </>
+      ) : isNomineeDetailsMobile ? (
+        <>
+          <p className="absolute left-[2px] top-[-37px] w-[204px] px-2 py-1 text-center text-xs font-normal text-[#294F7C]">
+            You can choose to skip this step for now and we will ask you this later
+          </p>
+          <button type="button" className="absolute left-[271px] top-[-30px] text-base font-normal text-[#294F7C] underline underline-offset-2">
+            Skip Section
+          </button>
+
+          {[
+            { label: 'Nominee’s Mobile Number', top: 113 },
+            { label: 'Nominee’s Name', top: 197 },
+            { label: 'Relationship with Investor', top: 281, isSelect: true },
+            { label: 'Nominee’s Date of Birth', top: 365 },
+            { label: 'Nominee’s Pan Number', top: 449 },
+            { label: 'Nominee’s Email', top: 533 },
+            { label: 'Address Line 1', top: 685 },
+            { label: 'Address Line 2', top: 769 },
+            { label: 'City', top: 853 },
+            { label: 'State', top: 937 },
+            { label: 'Pincode', top: 1021 },
+          ].map((item) => (
+            <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <p className="absolute left-[87px] top-[617px] text-base font-semibold tracking-[0.8px] text-[#294F7C]">Nominee Address Details</p>
+          <label className="absolute left-[240px] top-[658px] inline-flex cursor-pointer items-center gap-3 text-xs font-normal text-[#294F7C]">
+            <span
+              onClick={() => setSameAsYours((prev) => !prev)}
+              className="relative inline-flex size-[15px] items-center justify-center rounded-[2px] border border-[#294F7C]"
+            >
+              {sameAsYours ? <span className="size-[9px] rounded-[1px] bg-[#294F7C]" /> : null}
+            </span>
+            Same as yours
+          </label>
+
+          <Link href={step.prevStepHref || '/onboarding/8'} className="absolute left-[31px] top-[1122px] inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6" />
+            <span className="text-[20px] font-medium leading-none">Back</span>
+          </Link>
+          <Link href={step.nextStepHref || '/'} className="absolute left-[188px] top-[1110px] h-10 w-[150px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]">
+            Submit
+          </Link>
+        </>
+      ) : isBankDetailsDesktop ? (
+        <>
+          {[
+            { label: 'Account Holder Name', left: 24, top: 113 },
+            { label: 'IFSC Code', left: 326, top: 113 },
+            { label: 'Account Number', left: 24, top: 233 },
+            { label: 'Re-enter Account Number', left: 326, top: 233 },
+            { label: 'Type of Account', left: 24, top: 317, isSelect: true },
+            { label: 'Mode of Holding', left: 326, top: 317, isSelect: true },
+          ].map((item) => (
+            <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type="text"
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <p className="absolute left-[325px] top-[177px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#294F7C]">Branch:</p>
+          <p className="absolute left-[325px] top-[199px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#294F7C]">Address:</p>
+          <p className="absolute left-[325px] top-[297px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#FF0000]">Account numbers don&apos;t match</p>
+        </>
+      ) : isNomineeDetailsDesktop ? (
+        <>
+          <p className="absolute left-[205px] top-[-23px] -translate-x-1/2 text-center text-xs font-normal text-[#294F7C] whitespace-nowrap">
+            You can choose to skip this step for now and we will ask you this later
+          </p>
+          <button type="button" className="absolute left-[483px] top-[-28px] text-base font-normal text-[#294F7C] underline underline-offset-2">
+            Skip Section
+          </button>
+
+          {[
+            { label: 'Nominee’s Mobile Number', left: 24, top: 113 },
+            { label: 'Nominee’s Name', left: 326, top: 113 },
+            { label: 'Relationship with Investor', left: 24, top: 197, isSelect: true },
+            { label: 'Nominee’s Date of Birth', left: 326, top: 197 },
+            { label: 'Nominee’s Pan Number', left: 24, top: 281 },
+            { label: 'Nominee’s Email', left: 326, top: 281 },
+            { label: 'Address Line 1', left: 24, top: 417 },
+            { label: 'Address Line 2', left: 326, top: 417 },
+            { label: 'City', left: 24, top: 501 },
+            { label: 'State', left: 326, top: 501 },
+            { label: 'Pincode', left: 24, top: 585 },
+          ].map((item) => (
+            <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+            </div>
+          ))}
+
+          <p className="absolute left-[23px] top-[371px] text-base font-semibold tracking-[0.8px] text-[#294F7C]">Nominee Address Details</p>
+          <label className="absolute left-[463px] top-[371px] inline-flex cursor-pointer items-center gap-3 text-xs font-normal text-[#294F7C]">
+            <span
+              onClick={() => setSameAsYours((prev) => !prev)}
+              className="relative inline-flex size-[15px] items-center justify-center rounded-[2px] border border-[#294F7C]"
+            >
+              {sameAsYours ? <span className="size-[9px] rounded-[1px] bg-[#294F7C]" /> : null}
+            </span>
+            Same as yours
+          </label>
+
+          <Link href={step.prevStepHref || '/onboarding/8'} className="absolute left-[31px] top-[686px] inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6" />
+            <span className="text-[20px] font-medium leading-none">Back</span>
+          </Link>
+          <Link href={step.nextStepHref || '/'} className="absolute left-[418px] top-[677px] h-10 w-[150px] rounded-[30px] bg-[#294F7C] text-center text-[20px] font-normal leading-[40px] text-[#F8FAFC]">
+            Submit
+          </Link>
+        </>
       ) : (
         <div className={`absolute left-1/2 flex w-[250px] -translate-x-1/2 flex-col gap-6 ${step.question ? (mobile ? 'top-[217px]' : 'top-[183px]') : 'top-[113px]'}`}>
           {step.fields
@@ -246,27 +503,56 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
         </Link>
       ) : null}
 
-      {step.resendText ? <p className={`absolute w-[250px] text-right text-[10px] font-extralight text-black ${mobile ? 'left-[56px] top-[363px]' : 'left-[175px] top-[345px]'}`}>{step.resendText}</p> : null}
+      {step.resendText && !(isPersonalDetailsDesktop && step.id === 6) && !isPersonalDetailsMobileOtp ? (
+        <p
+          className={`absolute left-[310px] top-[355px] text-[10px] font-extralight text-black 
+            ${mobile
+              ? step.id === 4
+                ? 'left-1/2 top-[363px] w-[250px] -translate-x-1/2 text-left'
+                : 'left-[56px] top-[363px]'
+              : 'left-[175px] top-[345px]'}`}
+        >
+          {step.resendText}
+        </p>
+      ) : null}
 
-      <div
-        className={`absolute flex items-center justify-between ${useStepOneLayout ? 'left-[31px] right-[33px] top-[316px]' : 'bottom-8 left-8 right-8'
-          }`}
-      >
-        <Link href={step.prevStepHref || '/onboarding/1'} className="inline-flex items-center gap-[5px] text-[#294F7C]">
-          <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6 " />
-          <span className="text-[20px] font-medium leading-none">Back</span>
-        </Link>
+      {step.id === 7 ? (
+        <label
+          onClick={() => setAgreedTerms((prev) => !prev)}
+          className={`absolute flex cursor-pointer items-center gap-3 pt-1 text-xs font-normal text-[#294F7C] ${mobile ? 'bottom-[96px] left-1/2 w-[250px] -translate-x-1/2' : 'left-[174px] top-[542px]'
+            }`}
+        >
+          <span className="relative inline-flex size-[15px] items-center justify-center rounded-[2px] border border-[#294F7C]">
+            {agreedTerms ? <span className="size-[9px] rounded-[1px] bg-[#294F7C]" /> : null}
+          </span>
+          <span>
+            I agree to the{' '}
+            <span className="text-[#4A90E2] underline underline-offset-2">Terms & Conditions*</span>
+          </span>
+        </label>
+      ) : null}
 
-        {step.showSkip ? (
-          <button type="button" className="text-base font-normal text-[#294F7C] underline underline-offset-2">
-            Skip this step
-          </button>
-        ) : (
-          <Link href={step.nextStepHref || '/'} className="h-10 w-[100px] rounded-[30px] bg-[#294F7C] text-center text-xl font-normal leading-[40px] text-[#F8FAFC]">
-            Next
+      {!isNomineeDetailsDesktop && !isPersonalDetailsMobile && !isPersonalDetailsMobileOtp && !isBankDetailsMobile && !isNomineeDetailsMobile ? (
+        <div
+          className={`absolute flex items-center justify-between ${useStepOneLayout ? 'left-[31px] right-[33px] top-[316px]' : 'bottom-8 left-8 right-8'
+            }`}
+        >
+          <Link href={step.prevStepHref || '/onboarding/1'} className="inline-flex items-center gap-[5px] text-[#294F7C]">
+            <img src="/assets/onboarding/icons/back-arrow.svg" alt="" className="size-6 " />
+            <span className="text-[20px] font-medium leading-none">Back</span>
           </Link>
-        )}
-      </div>
+
+          {step.showSkip ? (
+            <button type="button" className="text-base font-normal text-[#294F7C] underline underline-offset-2">
+              Skip this step
+            </button>
+          ) : (
+            <Link href={step.nextStepHref || '/'} className="h-10 w-[100px] rounded-[30px] bg-[#294F7C] text-center text-xl font-normal leading-[40px] text-[#F8FAFC]">
+              Next
+            </Link>
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -416,7 +702,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
           </div>
         </div>
 
-        <div className="mt-8">
+        <div className={step.id === 9 ? 'mt-14' : 'mt-8'}>
           <StepCard step={step} mobile />
         </div>
 
