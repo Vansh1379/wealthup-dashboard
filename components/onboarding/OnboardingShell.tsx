@@ -18,12 +18,37 @@ function getSidebarTitleClass(itemId: number) {
 function getDesktopCardHeight(stepId: number) {
   if (stepId === 2) return 599;
   if (stepId === 1) return 389;
+  if (stepId === 5 || stepId === 6) return 701;
+  if (stepId === 7) return 663;
+  if (stepId === 8) return 481;
+  if (stepId === 9) return 749;
+  if (stepId === 10) return 532;
+  if (stepId === 11) return 430;
+  if (stepId === 12) return 420;
   return 462;
+}
+
+function getDesktopCardWidth(stepId: number) {
+  if (stepId === 10 || stepId === 11) return 428;
+  if (stepId === 12) return 515;
+  return 600;
+}
+
+function getMobileCardWidth(stepId: number) {
+  if (stepId === 12) return 360;
+  return 370;
 }
 
 function getMobileCardHeight(stepId: number) {
   if (stepId === 2) return 616;
   if (stepId === 1) return 389;
+  if (stepId === 5 || stepId === 6) return 760;
+  if (stepId === 7) return 700;
+  if (stepId === 8) return 560;
+  if (stepId === 9) return 820;
+  if (stepId === 10) return 560;
+  if (stepId === 11) return 500;
+  if (stepId === 12) return 430;
   return 462;
 }
 
@@ -58,7 +83,9 @@ function StepField({
 
 function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobile?: boolean }) {
   const cardHeight = mobile ? getMobileCardHeight(step.id) : getDesktopCardHeight(step.id);
+  const cardWidth = mobile ? getMobileCardWidth(step.id) : getDesktopCardWidth(step.id);
   const useStepOneLayout = step.id === 1 && !step.showSelfieUpload && !step.showSendOtp && !step.resendText;
+  const isPersonalDetailsDesktop = !mobile && (step.id === 5 || step.id === 6);
   const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(step.fields.map((field) => [field.label, ''])),
   );
@@ -72,7 +99,7 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
   }, [step.id, step.fields]);
 
   return (
-    <div className="relative rounded-[20px] border border-[#4A90E2] bg-[#EAF4FB]" style={{ width: mobile ? 370 : 600, height: cardHeight }}>
+    <div className="relative flex-none rounded-[20px] border border-[#4A90E2] bg-[#EAF4FB]" style={{ width: cardWidth, height: cardHeight }}>
       <h2 className="absolute left-1/2 top-[31px] w-full -translate-x-1/2 text-center text-xl font-semibold leading-none tracking-[1px] text-[#294F7C]">
         {step.title}
       </h2>
@@ -102,20 +129,74 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
         </>
       ) : null}
 
-      <div className={`absolute left-1/2 flex w-[250px] -translate-x-1/2 flex-col gap-6 ${step.question ? (mobile ? 'top-[217px]' : 'top-[183px]') : 'top-[113px]'}`}>
-        {step.fields
-          .filter((field) => !field.label.toLowerCase().includes('upload selfie'))
-          .map((field) => (
-            <StepField
-              key={field.label}
-              label={field.label}
-              value={fieldValues[field.label] ?? ''}
-              initialValue={field.value}
-              rounded={field.rounded}
-              onChange={(value) => setFieldValues((prev) => ({ ...prev, [field.label]: value }))}
-            />
+      {isPersonalDetailsDesktop ? (
+        <>
+          <p className="absolute left-6 top-[178px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#FF0000]">Enter name same as on Pan card.</p>
+          <p className="absolute left-[326px] top-[178px] w-[250px] text-[10px] font-light italic tracking-[0.5px] text-[#FF0000]">Enter Date of Birth same as on Pan card.</p>
+
+          {[
+            { label: 'Name', left: 24, top: 113 },
+            { label: 'Date of Birth', left: 326, top: 113 },
+            { label: 'Gender', left: 24, top: 197, isSelect: true },
+            { label: 'Marital Status', left: 326, top: 197, isSelect: true },
+            { label: 'Email', left: 24, top: 281 },
+            { label: 'Address Line 1', left: 24, top: 365 },
+            { label: 'Address Line 2', left: 326, top: 365 },
+            { label: 'City', left: 24, top: 449 },
+            { label: 'State', left: 326, top: 449 },
+            { label: 'Pincode', left: 24, top: 533 },
+            { label: 'Country of Birth', left: 326, top: 533, isSelect: true },
+          ].map((item) => (
+            <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
+              <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
+              <input
+                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
+                value={fieldValues[item.label] ?? ''}
+                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
+                className="absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+              />
+              {item.isSelect ? <span className="pointer-events-none absolute right-[10px] top-[28px] text-[#294F7C]">⌄</span> : null}
+            </div>
           ))}
-      </div>
+
+          {step.id === 5 ? (
+            <Link
+              href={step.nextStepHref || '/onboarding/4'}
+              className="absolute left-[326px] top-[301px] block h-10 w-[250px] rounded-[30px] bg-[#294F7C] text-center text-xl font-normal leading-[40px] text-[#F8FAFC]"
+            >
+              Send OTP
+            </Link>
+          ) : (
+            <>
+              <div className="absolute" style={{ left: 326, top: 281, width: 250, height: 60 }}>
+                <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">Enter OTP</p>
+                <input
+                  type="text"
+                  value={fieldValues['Enter OTP'] ?? ''}
+                  onChange={(event) => setFieldValues((prev) => ({ ...prev, 'Enter OTP': event.target.value }))}
+                  className="absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
+                />
+              </div>
+              <p className="absolute left-[461px] top-[345px] text-[10px] font-extralight text-black">Resend OTP in 30 seconds</p>
+            </>
+          )}
+        </>
+      ) : (
+        <div className={`absolute left-1/2 flex w-[250px] -translate-x-1/2 flex-col gap-6 ${step.question ? (mobile ? 'top-[217px]' : 'top-[183px]') : 'top-[113px]'}`}>
+          {step.fields
+            .filter((field) => !field.label.toLowerCase().includes('upload selfie'))
+            .map((field) => (
+              <StepField
+                key={field.label}
+                label={field.label}
+                value={fieldValues[field.label] ?? ''}
+                initialValue={field.value}
+                rounded={field.rounded}
+                onChange={(value) => setFieldValues((prev) => ({ ...prev, [field.label]: value }))}
+              />
+            ))}
+        </div>
+      )}
 
       {step.showSelfieUpload ? (
         <div className={`absolute left-1/2 w-[250px] -translate-x-1/2 rounded-[30px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] py-3 text-center ${mobile ? 'top-[402px]' : 'top-[385px]'}`}>
@@ -195,9 +276,9 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
   const progressPercent = Math.max(0, Math.min(100, step.progress));
 
   return (
-    <main className="min-h-screen bg-white font-urbanist font-normal text-[#294F7C]">
-      <div className="hidden min-h-screen w-full bg-white backdrop-blur-[50px] lg:flex">
-        <aside className="relative min-h-screen w-[34%] min-w-[420px] max-w-[520px]">
+    <main className="min-h-screen overflow-y-auto overflow-x-hidden bg-white font-urbanist font-normal text-[#294F7C]">
+      <div className="hidden min-h-[1024px] w-full bg-white backdrop-blur-[50px] lg:flex">
+        <aside className="relative h-[1024px] min-h-[1024px] w-[34%] min-w-[420px] max-w-[520px]">
           <div className="absolute inset-0 z-0 bg-[linear-gradient(122.67deg,#F8FAFC_0%,#EAF4FB_100%)]" />
           <img src="/assets/logos/wealthup-logo.png" alt="Wealthup" className="absolute left-8 top-8 z-10 h-10 w-[126px]" />
           <div className="absolute left-1/2 top-[100px] z-10 -translate-x-1/2 text-center">
@@ -296,12 +377,12 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
           </div>
         </aside>
 
-        <section className="relative min-h-screen flex-1 overflow-hidden bg-[radial-gradient(ellipse_50%_69.47%_at_50%_50%,#F8FAFC_0%,#EAF4FB_100%)] shadow-[4px_4px_250px_190px_rgba(207,230,247,1)]">
-          <div className="mx-auto mt-[150px] w-fit max-w-[calc(100%-48px)]">
+        <section className="relative min-h-[1024px] flex-1 overflow-visible bg-[radial-gradient(ellipse_50%_69.47%_at_50%_50%,#F8FAFC_0%,#EAF4FB_100%)] shadow-[4px_4px_250px_190px_rgba(207,230,247,1)]">
+          <div className="mx-auto mt-[150px] flex w-full justify-center px-6">
             <StepCard step={step} />
           </div>
 
-          <div className="mx-auto mt-8 flex w-fit max-w-[calc(100%-48px)] flex-wrap items-center gap-8 text-xs text-[#294F7C]">
+          <div className="mx-auto mt-8 mb-8 flex w-full flex-wrap items-center justify-center gap-8 px-6 text-xs text-[#294F7C]">
             {TRUST_ITEMS.map((item, idx) => (
               <div key={item.text} className="inline-flex items-center gap-2 whitespace-nowrap">
                 <span className={`inline-flex size-[30px] items-center justify-center rounded-[20px] ${idx < 2 ? 'bg-[rgba(255,255,255,0.3)]' : ''}`}>
@@ -314,7 +395,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
         </section>
       </div>
 
-      <div className="mx-auto max-w-[402px] overflow-hidden bg-[linear-gradient(155.3deg,#EAF4FB_0%,#F8FAFC_100%)] px-4 pb-8 pt-4 lg:hidden">
+      <div className="mx-auto min-h-screen max-w-[402px] overflow-y-auto overflow-x-hidden bg-[linear-gradient(155.3deg,#EAF4FB_0%,#F8FAFC_100%)] px-4 pb-8 pt-4 lg:hidden">
         <img src="/assets/logos/wealthup-logo.png" alt="Wealthup" className="h-10 w-[126px]" />
         <h1 className="mt-8 text-center text-[32px] font-bold leading-[0.95] text-[#294F7C]">
           Complete your

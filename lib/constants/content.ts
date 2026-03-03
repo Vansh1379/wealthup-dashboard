@@ -21,6 +21,7 @@ export const GAUGE_CONTENT = {
   mobileProgressArc: '/assets/illustrations/gauge-mobile-ellipse-19.svg',
   mobileNeedle: '/assets/illustrations/gauge-mobile-line-123.svg',
   mobileTooltipPointer: '/assets/illustrations/gauge-mobile-tooltip-pointer.svg',
+  desktopTooltipPointer: '/assets/illustrations/gauge-desktop-tooltip-pointer.svg',
   glow: '/assets/illustrations/gauge-glow-ellipse-20.svg',
 };
 

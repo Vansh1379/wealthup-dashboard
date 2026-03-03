@@ -4,8 +4,11 @@ import { GAUGE_CONTENT } from '@/lib/constants/content';
 export function ScoreGaugeCard({ score }: ScoreGaugeCardProps) {
   return (
     <>
-      <div className="font-urbanist mx-auto hidden h-[271px] w-[398px] sm:block" data-node-id="0:5624">
+      <div className="font-urbanist group relative mx-auto hidden h-[271px] w-[398px] sm:block" data-node-id="0:5624">
         <p className="h-6 w-[398px] whitespace-nowrap text-center text-[24px] font-bold leading-none text-[#294F7C]">Wealth Score</p>
+        <p className="pointer-events-none absolute left-0 top-0 h-6 w-[398px] whitespace-nowrap text-center text-[24px] font-bold leading-none text-[#294F7C] opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+          Wealth Score
+        </p>
 
         <div className="relative ml-[42px] mt-[32px] h-[214.99px] w-[319px]">
           <div className="relative flex w-[317px]">
@@ -26,6 +29,15 @@ export function ScoreGaugeCard({ score }: ScoreGaugeCardProps) {
           <p className="absolute left-1/2 top-[195px] h-[19.03px] w-[174px] -translate-x-1/2 whitespace-nowrap text-[16px] italic text-[#294F7C]">
             Better than <span className="font-bold">46%</span> of peers
           </p>
+        </div>
+
+        <div className="font-inter pointer-events-none absolute left-[225px] top-[30px] h-[70px] w-[168px] translate-x-4 translate-y-3 scale-[0.96] blur-md opacity-0 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] will-change-transform group-hover:translate-x-0 group-hover:translate-y-0 group-hover:scale-100 group-hover:blur-0 group-hover:opacity-100">
+          <div className="rounded-[8px] bg-white px-3 py-2 text-center text-[12px] leading-5 text-[#294F7C] shadow-[0px_8px_16px_-2px_rgba(27,33,44,0.12)]">
+            You need <span className="font-bold">+27</span> points to reach a <span className="font-bold text-[#00BA00]">good</span> score of <span className="font-bold">70</span>
+          </div>
+          <div className="absolute left-[22px] top-[55px] flex h-[14px] w-[20px] items-center justify-center">
+            <img className="h-[35px] w-[25px] " alt="" src={GAUGE_CONTENT.mobileTooltipPointer} />
+          </div>
         </div>
       </div>
 

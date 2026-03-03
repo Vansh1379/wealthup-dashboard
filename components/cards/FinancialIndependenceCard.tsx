@@ -31,19 +31,19 @@ export function FinancialIndependenceCard({ currentAge, potentialAge, deltaText 
         </div>
       </div>
 
-      <div className="font-urbanist relative mx-auto h-[206px] w-[338px] sm:hidden">
+      <div className="font-urbanist relative left-1/2 h-[206px] w-[338px] -translate-x-1/2 sm:hidden">
         <div className="absolute left-1/2 top-0 -translate-x-1/2 whitespace-nowrap text-[20px] font-semibold text-[#294F7C]">Financial independence age</div>
 
-        <div className="absolute left-0 top-[56px] h-[150px] w-[160px] rounded-[20px] border-b border-l border-t border-white bg-[#F8F8F8] text-center shadow-[0px_0px_24px_rgba(74,144,226,0.25)]">
+        <div className="absolute left-0 top-[56px] h-[150px] w-[160px] rounded-[20px] border-b border-l border-t border-white bg-[#F9F9F9] text-center shadow-[0px_0px_24px_rgba(74,144,226,0.25)]">
           <div className="mt-6 mx-auto h-[17px] w-[150px] text-[14px] font-semibold tracking-[0.7px] text-[#5E5E5E]">Current Trajectory</div>
           <div className="mt-2 mx-auto h-9 w-9 text-[30px] font-bold tracking-[1.5px] text-[#5E5E5E]">{currentAge}</div>
           <p className="mx-auto mt-2 h-7 w-[150px] text-[12px] tracking-[0.6px] text-[#7C7C7C]">Based on current savings you have</p>
         </div>
 
         <div className="absolute left-[178px] top-[56px] h-[150px] w-[160px] rounded-[20px] border border-white bg-[#EAF4FB] shadow-[0px_0px_24px_rgba(74,144,226,0.25)]">
-          <div className="mt-6 ml-[6px] h-[17px] w-[148px] text-center text-[14px] font-semibold tracking-[0.7px] text-[#307ED9]">Your Potential</div>
-          <div className="mt-2 ml-16 h-9 w-9 text-center text-[30px] font-bold tracking-[1.5px] text-[#294F7C]">{potentialAge}</div>
-          <p className="mt-2 text-center text-[12px] tracking-[0.6px] text-[#294F7C]">By following our personalized roadmap</p>
+          <div className="mt-6 mx-auto h-[17px] w-[148px] text-center text-[14px] font-semibold tracking-[0.7px] text-[#307ED9]">Your Potential</div>
+          <div className="mt-2 mx-auto h-9 w-9 text-center text-[30px] font-bold tracking-[1.5px] text-[#294F7C]">{potentialAge}</div>
+          <p className="mx-auto mt-2 w-[160px] text-center text-[12px] tracking-[0.6px] text-[#294F7C]">By following our personalized roadmap</p>
         </div>
 
         <div className="absolute left-[107px] top-[119px] h-6 w-[125px]">
