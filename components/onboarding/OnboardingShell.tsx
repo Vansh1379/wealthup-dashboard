@@ -332,7 +332,7 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              {renderControl(item.label, 'absolute left-10 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {renderControl(item.label, 'absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
               {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[10px] top-[28px] text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
