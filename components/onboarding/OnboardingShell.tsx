@@ -728,9 +728,11 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
             <span className="block text-[32px] font-bold leading-[0.95] text-[#294F7C]">Complete your</span>
             <span className="block text-[32px] font-bold leading-[0.95] text-[#4A90E2]">onboarding</span>
           </div>
-          <p className="absolute left-1/2 top-[184px] z-10 w-[316px] -translate-x-1/2 text-base font-normal text-[#294F7C]">Let&apos;s set up your account in a few quick steps.</p>
+          <p className="absolute left-1/2 top-[184px] z-10 w-[316px] -translate-x-1/2 text-base font-normal text-[#294F7C] min-[1070px]:max-[1246px]:top-[214px] min-[1070px]:max-[1246px]:w-[300px]">
+            Let&apos;s set up your account in a few quick steps.
+          </p>
 
-          <div className="absolute left-1/2 top-[235px] z-10 w-[300px] -translate-x-1/2">
+          <div className="absolute left-1/2 top-[235px] z-10 w-[300px] -translate-x-1/2 min-[1070px]:max-[1246px]:top-[270px]">
             <p className="text-sm font-normal text-[#294F7C]">Progress: {step.progress}%</p>
             <div className="mt-[11px] h-2 w-[300px] rounded-[10px] border-[0.5px] border-[#294F7C] bg-[#CFE6F7]">
               <div className="h-full rounded-[10px] bg-[#294F7C]" style={{ width: `${progressPercent}%` }} />
@@ -738,7 +740,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
             <p className="mt-[5px] text-right text-xs font-light text-[#294F7C]">Estimated Time: 90 sec</p>
           </div>
 
-          <div className="absolute left-1/2 top-[319px] z-10 flex w-[300px] -translate-x-1/2 flex-col gap-8">
+          <div className="absolute left-1/2 top-[319px] z-10 flex w-[300px] -translate-x-1/2 flex-col gap-8 min-[1070px]:max-[1246px]:top-[354px]">
             {ONBOARDING_SIDEBAR_ITEMS.map((item) => {
               const isCurrent = item.id === step.currentSidebarStage;
               const isCompleted = item.id < step.currentSidebarStage;
