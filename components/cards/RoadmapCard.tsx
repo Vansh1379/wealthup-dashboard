@@ -9,15 +9,17 @@ import { RecommendedFunds } from './RecommendedFunds';
 export function RoadmapCard({ action }: RoadmapCardProps) {
   return (
     <article className="card-hover flex h-full flex-col rounded-[20px] border bg-[#F8FAFC] p-4 sm:p-6" style={{ borderColor: action.severityTone === 'danger' ? '#FF4D4D' : '#FF883E' }}>
-      <div className="mb-3 flex items-start justify-between gap-3">
-        <h4 className="text-lg font-semibold">{action.title}</h4>
-        <div className="flex items-center gap-1 text-xs font-medium" style={{ color: action.severityTone === 'danger' ? '#FF4D4D' : '#FF883E' }}>
-          <img src={action.severityTone === 'danger' ? '/assets/icons/status-danger.svg' : '/assets/icons/status-warning.svg'} alt="" className="size-[15px]" />
-          {action.severity}
+      <div className="mb-4 h-[127px]">
+        <div className="mb-3 flex min-h-[22px] items-start justify-between gap-3">
+          <h4 className="w-[180px] text-lg font-semibold leading-[22px] text-[22px]">{action.title}</h4>
+          <div className="flex min-w-[132px] items-center justify-end gap-1 whitespace-nowrap text-xs font-medium" style={{ color: action.severityTone === 'danger' ? '#FF4D4D' : '#FF883E' }}>
+            <img src={action.severityTone === 'danger' ? '/assets/icons/status-danger.svg' : '/assets/icons/status-warning.svg'} alt="" className="size-[15px]" />
+            {action.severity}
+          </div>
         </div>
+        <p className="h-[80px] overflow-hidden text-sm leading-5">{action.description}</p>
       </div>
 
-      <p className="mb-4 text-sm leading-5">{action.description}</p>
       <p className="mb-2 text-sm font-semibold">I want to start with</p>
 
       <div className="mb-3">

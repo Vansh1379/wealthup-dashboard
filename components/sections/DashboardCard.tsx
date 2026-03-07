@@ -6,7 +6,7 @@ import { FI_CONTENT, GAUGE_CONTENT, SCORE_BREAKDOWN } from '@/lib/constants/cont
 export function DashboardCard() {
   return (
     <section className="font-urbanist mx-auto w-full max-w-[1120px] rounded-[20px] bg-[#F8FAFC] px-4 py-8 shadow-card sm:px-6 xl:px-0">
-      <div className="grid gap-10 xl:hidden xl:grid-cols-[398px_472px] xl:items-start xl:justify-center xl:gap-12">
+      <div className="grid gap-10 lg:grid-cols-[398px_472px] lg:items-start lg:justify-center lg:gap-12 xl:hidden">
         <ScoreGaugeCard score={GAUGE_CONTENT.score} peerText={GAUGE_CONTENT.peerText} tooltipText={GAUGE_CONTENT.tooltipText} />
         <FinancialIndependenceCard currentAge={FI_CONTENT.currentAge} potentialAge={FI_CONTENT.potentialAge} deltaText={FI_CONTENT.deltaText} />
       </div>

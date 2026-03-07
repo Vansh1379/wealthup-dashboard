@@ -6,9 +6,9 @@ export function Header() {
 
   return (
 
-    <header className="mx-auto w-full max-w-[1120px] px-4 pb-6 pt-4 sm:px-6 sm:pt-8 lg:px-0">
+    <header className="mx-auto w-full max-w-[1120px] px-4 pb-6 pt-4 sm:px-6 sm:pt-8 lg:px-4 xl:px-0">
       <img src={HEADER_CONTENT.logo} alt="Wealthup" className="h-10 w-[126px] object-contain" />
-      <div className="mt-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="mt-8 flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
         <div>
 
           <h1 className="font-urbanist text-2xl font-normal leading-normal text-[#294F7C]">

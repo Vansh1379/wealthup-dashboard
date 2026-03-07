@@ -53,31 +53,150 @@ function getMobileCardHeight(stepId: number) {
   return 462;
 }
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+const SELECT_OPTIONS: Record<string, string[]> = {
+  gender: ['Male', 'Female'],
+  'marital status': ['Single', 'Married', 'Separated', 'Divorced', 'Widowed'],
+  'type of account': ['Current', 'Saving'],
+  'relationship with investor': ['Spouse', 'Father', 'Mother', 'Brother', 'Sister', 'Son', 'Daughter', 'Other'],
+  'country of birth': ['India', 'Other'],
+  'mode of holding': ['Single', 'Joint', 'Either or Survivor'],
+};
+
+function normalizeLabel(label: string) {
+  return label.toLowerCase().replace(/[’']/g, '').trim();
+}
+
+function isPanLabel(label: string) {
+  return normalizeLabel(label).includes('pan number');
+}
+
+function isEmailLabel(label: string) {
+  return normalizeLabel(label).includes('email');
+}
+
+function isMobileLabel(label: string) {
+  return normalizeLabel(label).includes('mobile number');
+}
+
+function isNameLabel(label: string) {
+  const normalized = normalizeLabel(label);
+  return normalized.includes('name');
+}
+
+function isPincodeLabel(label: string) {
+  return normalizeLabel(label).includes('pincode');
+}
+
+function isDateLabel(label: string) {
+  return normalizeLabel(label).includes('date of birth');
+}
+
+function getSelectOptions(label: string) {
+  return SELECT_OPTIONS[normalizeLabel(label)];
+}
+
+function sanitizePan(rawValue: string) {
+  const alnum = rawValue.toUpperCase().replace(/[^A-Z0-9]/g, '');
+  let result = '';
+  for (const char of alnum) {
+    if (result.length < 5) {
+      if (/[A-Z]/.test(char)) result += char;
+      continue;
+    }
+    if (result.length < 9) {
+      if (/[0-9]/.test(char)) result += char;
+      continue;
+    }
+    if (result.length === 9) {
+      if (/[A-Z]/.test(char)) result += char;
+      break;
+    }
+  }
+  return result.slice(0, 10);
+}
+
+function sanitizeFieldValue(label: string, rawValue: string) {
+  if (isPanLabel(label)) return sanitizePan(rawValue);
+  if (isMobileLabel(label)) return rawValue.replace(/\D/g, '').slice(0, 10);
+  if (isPincodeLabel(label)) return rawValue.replace(/\D/g, '').slice(0, 6);
+  if (isNameLabel(label)) return rawValue.replace(/[^A-Za-z\s]/g, '');
+  if (isEmailLabel(label)) return rawValue.replace(/\s/g, '').toLowerCase();
+  return rawValue;
+}
+
+function getFieldError(label: string, value: string) {
+  if (!value) return '';
+  if (isPanLabel(label) && !PAN_REGEX.test(value)) return 'PAN format must be ABCDE1234F';
+  if (isEmailLabel(label) && !EMAIL_REGEX.test(value)) return 'Please enter a valid email address';
+  if (isMobileLabel(label) && value.length !== 10) return 'Mobile number must be 10 digits';
+  if (isPincodeLabel(label) && value.length !== 6) return 'Pincode must be 6 digits';
+  if (isNameLabel(label) && !/^[A-Za-z\s]+$/.test(value)) return 'Only letters are allowed';
+  return '';
+}
+
+function getInputType(label: string): 'text' | 'email' | 'tel' | 'date' {
+  if (isDateLabel(label)) return 'date';
+  if (isEmailLabel(label)) return 'email';
+  if (isMobileLabel(label) || isPincodeLabel(label)) return 'tel';
+  return 'text';
+}
+
+function getInputMode(label: string): 'text' | 'email' | 'numeric' {
+  if (isMobileLabel(label) || isPincodeLabel(label)) return 'numeric';
+  if (isEmailLabel(label)) return 'email';
+  return 'text';
+}
+
 function StepField({
   label,
   value,
   initialValue,
   rounded = 'pill',
   onChange,
+  error,
 }: {
   label: string;
   value: string;
   initialValue?: string;
   rounded?: 'pill' | 'soft';
   onChange: (value: string) => void;
+  error?: string;
 }) {
-  const inputType = label.toLowerCase().includes('email') ? 'email' : 'text';
+  const selectOptions = getSelectOptions(label);
+  const inputType = getInputType(label);
 
   return (
     <div>
       <p className="mb-[3px] pl-[15px] text-sm font-extralight italic tracking-[0.7px] text-[#294F7C]">{label}</p>
-      <input
-        type={inputType}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={initialValue ?? ''}
-        className={`h-10 w-full border border-[#294F7C] bg-[rgba(248,250,252,0.7)] ${rounded === 'pill' ? 'rounded-[70px]' : 'rounded-[20px]'} px-[15px] py-[9px] text-sm font-normal not-italic tracking-normal text-[#294F7C] outline-none placeholder:font-extralight placeholder:italic placeholder:tracking-[1.4px] placeholder:text-[#5E5E5E]`}
-      />
+      {selectOptions ? (
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className={`h-10 w-full appearance-none border border-[#294F7C] bg-[rgba(248,250,252,0.7)] ${rounded === 'pill' ? 'rounded-[70px]' : 'rounded-[20px]'} px-[15px] py-[9px] pr-8 text-sm font-normal not-italic tracking-normal text-[#294F7C] outline-none`}
+          aria-invalid={error ? true : undefined}
+        >
+          <option value="">Select</option>
+          {selectOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      ) : (
+        <input
+          type={inputType}
+          inputMode={getInputMode(label)}
+          maxLength={isPanLabel(label) ? 10 : isMobileLabel(label) ? 10 : isPincodeLabel(label) ? 6 : undefined}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={initialValue ?? ''}
+          className={`h-10 w-full border border-[#294F7C] bg-[rgba(248,250,252,0.7)] ${rounded === 'pill' ? 'rounded-[70px]' : 'rounded-[20px]'} px-[15px] py-[9px] text-sm font-normal not-italic tracking-normal text-[#294F7C] outline-none placeholder:font-extralight placeholder:italic placeholder:tracking-[1.4px] placeholder:text-[#5E5E5E]`}
+          aria-invalid={error ? true : undefined}
+        />
+      )}
     </div>
   );
 }
@@ -96,6 +215,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
   const [fieldValues, setFieldValues] = useState<Record<string, string>>(() =>
     Object.fromEntries(step.fields.map((field) => [field.label, ''])),
   );
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [selectedTaxResident, setSelectedTaxResident] = useState<'yes' | 'no'>(step.selectedTaxResident ?? 'no');
   const [selectedFileName, setSelectedFileName] = useState('');
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [sameAsYours, setSameAsYours] = useState(false);
@@ -104,10 +225,55 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
 
   useEffect(() => {
     setFieldValues(Object.fromEntries(step.fields.map((field) => [field.label, ''])));
+    setFieldErrors({});
+    setSelectedTaxResident(step.selectedTaxResident ?? 'no');
     setSelectedFileName('');
     setAgreedTerms(false);
     setSameAsYours(false);
-  }, [step.id, step.fields]);
+  }, [step.id, step.fields, step.selectedTaxResident]);
+
+  const handleFieldChange = (label: string, rawValue: string) => {
+    const sanitized = sanitizeFieldValue(label, rawValue);
+    setFieldValues((prev) => ({ ...prev, [label]: sanitized }));
+    setFieldErrors((prev) => ({ ...prev, [label]: getFieldError(label, sanitized) }));
+  };
+
+  const renderControl = (label: string, className: string, placeholder?: string) => {
+    const selectOptions = getSelectOptions(label);
+    const value = fieldValues[label] ?? '';
+    const error = fieldErrors[label];
+
+    if (selectOptions) {
+      return (
+        <select
+          value={value}
+          onChange={(event) => handleFieldChange(label, event.target.value)}
+          className={`${className} appearance-none pr-8`}
+          aria-invalid={error ? true : undefined}
+        >
+          <option value="">Select</option>
+          {selectOptions.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    return (
+      <input
+        type={getInputType(label)}
+        inputMode={getInputMode(label)}
+        maxLength={isPanLabel(label) ? 10 : isMobileLabel(label) ? 10 : isPincodeLabel(label) ? 6 : undefined}
+        value={value}
+        onChange={(event) => handleFieldChange(label, event.target.value)}
+        placeholder={placeholder ?? ''}
+        className={className}
+        aria-invalid={error ? true : undefined}
+      />
+    );
+  };
 
   return (
     <div className="relative flex-none rounded-[20px] border border-[#4A90E2] bg-[#EAF4FB]" style={{ width: cardWidth, height: cardHeight }}>
@@ -125,14 +291,20 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           </p>
           <div className={`font-inter absolute flex items-center gap-8 text-sm ${mobile ? 'left-1/2 top-[176px] -translate-x-1/2' : 'left-1/2 top-[142px] -translate-x-1/2'}`}>
             <label className="inline-flex items-center gap-2 text-[#294F7C]">
-              <span className="inline-flex size-[15px] items-center justify-center rounded-full border border-[#294F7C]">
-                <span className={`${step.selectedTaxResident === 'yes' ? 'size-[9px] rounded-full bg-[#4A90E2]' : 'hidden'}`} />
+              <span
+                onClick={() => setSelectedTaxResident('yes')}
+                className="inline-flex size-[15px] cursor-pointer items-center justify-center rounded-full border border-[#294F7C]"
+              >
+                <span className={`${selectedTaxResident === 'yes' ? 'size-[9px] rounded-full bg-[#4A90E2]' : 'hidden'}`} />
               </span>
               Yes
             </label>
             <label className="inline-flex items-center gap-2 text-[#294F7C]">
-              <span className="inline-flex size-[15px] items-center justify-center rounded-full border border-[#294F7C]">
-                <span className={`${step.selectedTaxResident === 'no' ? 'size-[9px] rounded-full bg-[#4A90E2]' : 'hidden'}`} />
+              <span
+                onClick={() => setSelectedTaxResident('no')}
+                className="inline-flex size-[15px] cursor-pointer items-center justify-center rounded-full border border-[#294F7C]"
+              >
+                <span className={`${selectedTaxResident === 'no' ? 'size-[9px] rounded-full bg-[#4A90E2]' : 'hidden'}`} />
               </span>
               No
             </label>
@@ -160,13 +332,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[10px] top-[28px] text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-10 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[10px] top-[28px] text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -181,12 +348,7 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
             <>
               <div className="absolute" style={{ left: 326, top: 281, width: 250, height: 60 }}>
                 <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">Enter OTP</p>
-                <input
-                  type="text"
-                  value={fieldValues['Enter OTP'] ?? ''}
-                  onChange={(event) => setFieldValues((prev) => ({ ...prev, 'Enter OTP': event.target.value }))}
-                  className="absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-                />
+                {renderControl('Enter OTP', 'absolute left-0 top-[19.5px] h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
               </div>
               <p className="absolute left-[461px] top-[345px] text-[10px] font-extralight text-black">Resend OTP in 30 seconds</p>
             </>
@@ -209,13 +371,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -253,13 +410,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -285,13 +437,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute left-[60px]" style={{ top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type="text"
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -330,13 +477,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute left-[56px]" style={{ top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -371,13 +513,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type="text"
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -409,13 +546,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
           ].map((item) => (
             <div key={item.label} className="absolute" style={{ left: item.left, top: item.top, width: 250, height: 60 }}>
               <p className="absolute left-[15px] top-0 text-sm font-light italic tracking-[0.7px] text-[#294F7C]">{item.label}</p>
-              <input
-                type={item.label.toLowerCase().includes('email') ? 'email' : 'text'}
-                value={fieldValues[item.label] ?? ''}
-                onChange={(event) => setFieldValues((prev) => ({ ...prev, [item.label]: event.target.value }))}
-                className="absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none"
-              />
-              {item.isSelect ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
+              {renderControl(item.label, 'absolute left-0 top-5 h-10 w-[250px] rounded-[20px] border border-[#294F7C] bg-[rgba(248,250,252,0.7)] px-[15px] py-[9px] text-sm font-normal not-italic text-[#294F7C] outline-none')}
+              {(item.isSelect || getSelectOptions(item.label)) ? <span className="pointer-events-none absolute right-[14px] top-[28px] text-lg leading-none text-[#294F7C]">⌄</span> : null}
             </div>
           ))}
 
@@ -449,7 +581,8 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
                 value={fieldValues[field.label] ?? ''}
                 initialValue={field.value}
                 rounded={field.rounded}
-                onChange={(value) => setFieldValues((prev) => ({ ...prev, [field.label]: value }))}
+                onChange={(value) => handleFieldChange(field.label, value)}
+                error={fieldErrors[field.label]}
               />
             ))}
         </div>
@@ -560,10 +693,28 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
 export function OnboardingShell({ step }: OnboardingShellProps) {
   const activeSegments = Math.max(1, Math.min(6, Math.ceil((step.progress / 100) * 6)));
   const progressPercent = Math.max(0, Math.min(100, step.progress));
+  const tabletCardContainerRef = useRef<HTMLDivElement>(null);
+  const [tabletCardContainerWidth, setTabletCardContainerWidth] = useState(402);
+
+  useEffect(() => {
+    const element = tabletCardContainerRef.current;
+    if (!element) return;
+
+    const updateWidth = () => setTabletCardContainerWidth(element.clientWidth || 402);
+    updateWidth();
+
+    const observer = new ResizeObserver(updateWidth);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+
+  const mobileCardWidth = getMobileCardWidth(step.id);
+  const mobileScale = Math.max(0.76, Math.min(1.08, tabletCardContainerWidth / mobileCardWidth));
+  const mobileCardScaledHeight = getMobileCardHeight(step.id) * mobileScale;
 
   return (
     <main className="min-h-screen overflow-y-auto overflow-x-hidden bg-white font-urbanist font-normal text-[#294F7C]">
-      <div className="hidden min-h-[1024px] w-full bg-white backdrop-blur-[50px] lg:flex">
+      <div className="hidden min-h-[1024px] w-full bg-white backdrop-blur-[50px] min-[1070px]:flex">
         <aside className="relative h-[1024px] min-h-[1024px] w-[34%] min-w-[420px] max-w-[520px]">
           <div className="absolute inset-0 z-0 bg-[linear-gradient(122.67deg,#F8FAFC_0%,#EAF4FB_100%)]" />
           <img src="/assets/logos/wealthup-logo.png" alt="Wealthup" className="absolute left-8 top-8 z-10 h-10 w-[126px]" />
@@ -584,6 +735,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
           <div className="absolute left-1/2 top-[319px] z-10 flex w-[300px] -translate-x-1/2 flex-col gap-8">
             {ONBOARDING_SIDEBAR_ITEMS.map((item) => {
               const isCurrent = item.id === step.currentSidebarStage;
+              const isCompleted = item.id < step.currentSidebarStage;
 
               return (
                 <div
@@ -629,6 +781,7 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
                   <p
                     className={`absolute top-[10px] text-sm font-bold text-[#294F7C] 
       ${!isCurrent && 'opacity-60'}
+      ${isCompleted ? 'line-through decoration-[1.5px] decoration-[#294F7C]' : ''}
       ${getSidebarTitleClass(item.id)}`}
                   >
                     {item.title}
@@ -681,51 +834,65 @@ export function OnboardingShell({ step }: OnboardingShellProps) {
         </section>
       </div>
 
-      <div className="mx-auto min-h-screen max-w-[402px] overflow-y-auto overflow-x-hidden bg-[linear-gradient(155.3deg,#EAF4FB_0%,#F8FAFC_100%)] px-4 pb-8 pt-4 lg:hidden">
-        <img src="/assets/logos/wealthup-logo.png" alt="Wealthup" className="h-10 w-[126px]" />
-        <h1 className="mt-8 text-center text-[32px] font-bold leading-[0.95] text-[#294F7C]">
-          Complete your
-          <br />
-          <span className="text-[#4A90E2]">onboarding</span>
-        </h1>
-        <p className="mt-3 text-center text-base text-[#294F7C]">Let&apos;s set up your account in a few quick steps.</p>
+      <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden bg-[linear-gradient(155.3deg,#EAF4FB_0%,#F8FAFC_100%)] pb-8 pt-4 min-[1070px]:hidden">
+        <div className="mx-auto w-full max-w-[900px] px-4 md:px-8">
+          <img src="/assets/logos/wealthup-logo.png" alt="Wealthup" className="h-10 w-[126px]" />
+          <h1 className="mt-8 text-center text-[32px] font-bold leading-[0.95] text-[#294F7C] md:text-[40px]">
+            Complete your
+            <br />
+            <span className="text-[#4A90E2]">onboarding</span>
+          </h1>
+          <p className="mt-3 text-center text-base text-[#294F7C] md:mx-auto md:max-w-[480px]">Let&apos;s set up your account in a few quick steps.</p>
 
-        <div className="mt-6">
-          <div className="flex gap-[4.6px]">
-            {Array.from({ length: 6 }).map((_, idx) => (
-              <div key={idx} className={`h-[10px] w-[57.64px] rounded-[10px] ${step.id === 1 ? 'bg-[#CFE6F7]' : idx < activeSegments ? 'bg-[#294F7C]' : 'bg-[#CFE6F7]'}`} />
-            ))}
+          <div className="mt-6 md:mx-auto md:max-w-[720px]">
+            <div className="grid grid-cols-6 gap-[4.6px] md:gap-2">
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <div key={idx} className={`h-[10px] w-full rounded-[10px] ${step.id === 1 ? 'bg-[#CFE6F7]' : idx < activeSegments ? 'bg-[#294F7C]' : 'bg-[#CFE6F7]'}`} />
+              ))}
+            </div>
+            <div className="mt-3 flex items-end justify-between">
+              <p className="text-sm font-bold text-[#294F7C]">{step.mobileStepLabel}</p>
+              <p className="text-[10px] text-[#294F7C]">Estimated Time: 20 sec</p>
+            </div>
           </div>
-          <div className="mt-3 flex items-end justify-between">
-            <p className="text-sm font-bold text-[#294F7C]">{step.mobileStepLabel}</p>
-            <p className="text-[10px] text-[#294F7C]">Estimated Time: 20 sec</p>
+
+          <div className={step.id === 9 ? 'mt-14' : 'mt-8 md:mt-10'}>
+            <div ref={tabletCardContainerRef} className="mx-auto w-full md:max-w-[720px]">
+              <div className="mx-auto" style={{ width: mobileCardWidth * mobileScale, height: mobileCardScaledHeight }}>
+                <div
+                  style={{
+                    width: mobileCardWidth,
+                    transform: `scale(${mobileScale})`,
+                    transformOrigin: 'top left',
+                  }}
+                >
+                  <StepCard step={step} mobile />
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
 
-        <div className={step.id === 9 ? 'mt-14' : 'mt-8'}>
-          <StepCard step={step} mobile />
-        </div>
-
-        <div className="mt-6 text-xs text-[#294F7C]">
-          <div className="flex items-center justify-between">
-            <div className="inline-flex items-center gap-2">
+          <div className="mt-6 text-xs text-[#294F7C] md:mx-auto md:max-w-[760px]">
+            <div className="flex items-center justify-between">
+              <div className="inline-flex items-center gap-2">
+                <span className="inline-flex size-[30px] items-center justify-center rounded-[20px] bg-[rgba(255,255,255,0.3)]">
+                  <img src={TRUST_ITEMS[0].icon} alt="" className="size-5" />
+                </span>
+                {TRUST_ITEMS[0].text}
+              </div>
+              <div className="inline-flex items-center gap-2">
+                <span className="inline-flex size-[30px] items-center justify-center rounded-[20px]">
+                  <img src={TRUST_ITEMS[2].icon} alt="" className="size-5" />
+                </span>
+                {TRUST_ITEMS[2].text}
+              </div>
+            </div>
+            <div className="mt-4 inline-flex items-center gap-2">
               <span className="inline-flex size-[30px] items-center justify-center rounded-[20px] bg-[rgba(255,255,255,0.3)]">
-                <img src={TRUST_ITEMS[0].icon} alt="" className="size-5" />
+                <img src={TRUST_ITEMS[1].icon} alt="" className="size-5" />
               </span>
-              {TRUST_ITEMS[0].text}
+              {TRUST_ITEMS[1].text}
             </div>
-            <div className="inline-flex items-center gap-2">
-              <span className="inline-flex size-[30px] items-center justify-center rounded-[20px]">
-                <img src={TRUST_ITEMS[2].icon} alt="" className="size-5" />
-              </span>
-              {TRUST_ITEMS[2].text}
-            </div>
-          </div>
-          <div className="mt-4 inline-flex items-center gap-2">
-            <span className="inline-flex size-[30px] items-center justify-center rounded-[20px] bg-[rgba(255,255,255,0.3)]">
-              <img src={TRUST_ITEMS[1].icon} alt="" className="size-5" />
-            </span>
-            {TRUST_ITEMS[1].text}
           </div>
         </div>
       </div>
