@@ -22,7 +22,9 @@ export function ScoreGaugeCard({ score }: ScoreGaugeCardProps) {
                 src={GAUGE_CONTENT.desktopNeedle}
               />
               <div className="font-inter absolute left-[131px] top-[54px] w-14 text-center text-[36px] font-bold leading-none text-[#FF6A6A]">{score}</div>
-              <div className="absolute left-[95px] top-[126px] w-32 text-center text-[19px] font-semibold tracking-[0.95px] text-[#294F7C]">Wealth Score</div>
+              <div className="absolute left-1/2 top-[126px] w-[122px] -translate-x-1/2 text-center text-[14px] font-normal text-[#294F7C] underline decoration-[0.8px] underline-offset-[2px]">
+                Improve Accuracy
+              </div>
             </div>
           </div>
 
@@ -56,7 +58,9 @@ export function ScoreGaugeCard({ score }: ScoreGaugeCardProps) {
             />
 
             <div className="font-inter absolute left-[123px] top-[51px] w-[53px] text-center text-[24px] font-bold leading-none text-[#FF6A6A]">{score}</div>
-            <div className="absolute left-[89px] top-[118px] w-[120px] text-center text-[14px] font-semibold tracking-[0.7px] text-[#294F7C]">Wealth Score</div>
+            <div className="absolute left-1/2 top-[118px] w-[122px] -translate-x-1/2 text-center text-[14px] font-normal tracking-[0.7px] text-[#294F7C] underline decoration-[0.8px] underline-offset-[2px]">
+              Improve Accuracy
+            </div>
           </div>
         </div>
 

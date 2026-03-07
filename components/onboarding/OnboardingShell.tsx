@@ -455,11 +455,14 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
         </>
       ) : isNomineeDetailsMobile ? (
         <>
-          <p className="absolute left-[2px] top-[-37px] w-[204px] px-2 py-1 text-center text-xs font-normal text-[#294F7C]">
-            You can choose to skip this step for now and we will ask you this later
+          <p className="font-inter absolute left-0 top-[-33px] w-[126px] text-xs font-normal text-[#294F7C]">
+            You can add this later
           </p>
-          <button type="button" className="absolute left-[271px] top-[-30px] text-base font-normal text-[#294F7C] underline underline-offset-2">
-            Skip Section
+          <button
+            type="button"
+            className="font-inter absolute left-[170px] top-[-45px] h-10 w-[200px] rounded-[30px] border border-[#294F7C] bg-[#4A90E2] text-base font-semibold text-[#F8FAFC]"
+          >
+            Skip for now
           </button>
 
           {[
@@ -524,11 +527,14 @@ function StepCard({ step, mobile = false }: { step: OnboardingStepContent; mobil
         </>
       ) : isNomineeDetailsDesktop ? (
         <>
-          <p className="absolute left-[205px] top-[-23px] -translate-x-1/2 text-center text-xs font-normal text-[#294F7C] whitespace-nowrap">
-            You can choose to skip this step for now and we will ask you this later
+          <p className="font-inter absolute left-6 top-[-32px] text-xs font-normal text-[#294F7C] whitespace-nowrap">
+            You can skip this step for now and add these details later
           </p>
-          <button type="button" className="absolute left-[483px] top-[-28px] text-base font-normal text-[#294F7C] underline underline-offset-2">
-            Skip Section
+          <button
+            type="button"
+            className="font-inter absolute left-[376px] top-[-45px] h-10 w-[200px] rounded-[30px] border border-[#294F7C] bg-[#4A90E2] text-base font-semibold text-[#F8FAFC]"
+          >
+            Skip for now
           </button>
 
           {[
